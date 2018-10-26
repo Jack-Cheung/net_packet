@@ -1,0 +1,3 @@
+/home/qw/Documents/storage-node/tcp-client/build/CMakeFiles/edit_cache.dir
+/home/qw/Documents/storage-node/tcp-client/build/CMakeFiles/rebuild_cache.dir
+/home/qw/Documents/storage-node/tcp-client/build/CMakeFiles/tcp-client.dir

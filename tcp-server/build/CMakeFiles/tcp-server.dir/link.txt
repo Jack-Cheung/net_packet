@@ -1,0 +1,1 @@
+/usr/bin/c++      CMakeFiles/tcp-server.dir/main.cpp.o  -o tcp-server /home/qw/opt/boost/lib/libboost_system.so /home/qw/opt/boost/lib/libboost_thread.so -lpthread -Wl,-rpath,/home/qw/opt/boost/lib 
