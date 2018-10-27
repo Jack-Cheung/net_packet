@@ -2,24 +2,19 @@
 #include <string>
 ostream& operator<<(ostream& os, Header& header)
 {
-    //os << header.version  << header.operation << header.unfixed_size;
     os.write((const char*)&header.version, sizeof(header.version))
     .write((const char*)&header.operation, sizeof(header.operation))
     .write((const char*)&header.unfixed_size, sizeof(header.unfixed_size))
     .write((const char*)&header.packet_len, sizeof(header.packet_len))
     .write((const char*)&header.open_session, sizeof(header.open_session));
-    //os << "---------" << header.packet_len << "---------" << header.open_session;
-    //cout << header.packet_len << "000" << to_string(header.packet_len) << endl;
     return os;
 }
 
 ostream& operator<<(ostream& os, const Param& param)
 {
-    //os << param.len;
     os.write((const char*)&param.len, sizeof(param.len));
     for(int i = 0; i < param.len; ++i)
     {
-        //os << *(param.data + i);
         os.write((const char*)(param.data + i),sizeof(uint8_t));
     }
     return os;
@@ -27,7 +22,7 @@ ostream& operator<<(ostream& os, const Param& param)
 
 ostream& operator<<(ostream& os, Packet& packet)
 {
-    packet.header.packet_len = packet.len;
+    //packet.header.packet_len = packet.len;//to do
     os << packet.header;
     for(const auto &p : packet.params)
     {
@@ -38,9 +33,11 @@ ostream& operator<<(ostream& os, Packet& packet)
 
 istream& operator>>(istream& is, Header& header)
 {
-    
-    is >> header.version >> header.operation >> header.unfixed_size
-      >> header.packet_len >> header.open_session;
+    is.read((char*)&header.version, sizeof(header.version))
+    .read((char*)&header.operation, sizeof(header.operation))
+    .read((char*)&header.unfixed_size, sizeof(header.unfixed_size))
+    .read((char*)&header.packet_len, sizeof(header.packet_len))
+    .read((char*)&header.open_session, sizeof(header.open_session));
     return is;
 }
 
@@ -60,16 +57,18 @@ istream& operator>>(istream& is, Packet& packet)
 {
     is >> packet.header;
     uint64_t packet_len = packet.header.packet_len;
+    cout << packet_len << "= packet len";
     uint64_t cnt = HEADER_LEN;
     while(cnt < packet_len)
     {
         uint8_t param_len = 0;
-        is >> param_len;
+        //is >> param_len;
+        is.read((char*)&param_len, sizeof(param_len));
         Param* p = nullptr;
         if(1 == param_len)
         {
             uint8_t data;
-            is >> data;
+            is.read((char*)&data, sizeof(data));
         }
         else
         {
@@ -77,15 +76,15 @@ istream& operator>>(istream& is, Packet& packet)
             for(uint64_t i = 0; i < param_len; i++)
             {
                 uint8_t data;
-                is >> data;
+                is.read((char*)&data, sizeof(data));
                 *(arr + i) = data;
             }
-            string str((char*)arr);
-            Param* p = new Param(str);
+            arr[param_len] = '\0';
+            Param* p = new Param(arr, param_len);
             packet.params.push_back(p);
             delete[] arr;
         }
-        cnt += param_len;
+        cnt += param_len + PARAM_LEN_LEN;
     }
 }
 
@@ -93,6 +92,21 @@ Param::Param(uint8_t data)
 {
     this->data = new uint8_t(data);
     len = 1;
+}
+
+Param::Param(uint64_t param)
+{
+    len = sizeof(param);
+    this->data = new uint8_t[len];
+    uint8_t* p = (uint8_t*)&param;
+    std::copy(p, p + len, data);
+}
+
+Param::Param(uint8_t* data, uint64_t size)
+{
+    this->len = size;
+    this->data = new uint8_t[len];
+    std::copy(data, data + size, this->data);
 }
 
 Param::Param(const string& str)
@@ -129,11 +143,7 @@ Param& Param::operator=(Param&& p)
 void Packet::setHeader(const Header& header)
 {
     this->header = header;
-}
-
-Packet::Packet():len(HEADER_LEN)
-{
-
+    this->header.packet_len = HEADER_LEN;
 }
 
 Packet::~Packet()
@@ -151,7 +161,7 @@ Packet::~Packet()
 Packet&  Packet::addParam(Param* param)
 {
     this->params.push_back(param);
-    this->len += param->len;
+    this->header.packet_len += param->len + PARAM_LEN_LEN;
     return *this;
 }
 //todo

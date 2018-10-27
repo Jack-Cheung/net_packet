@@ -5,7 +5,8 @@
 #include <vector>
 #include <boost/smart_ptr.hpp>
 
-#define HEADER_LEN  15
+#define HEADER_LEN  12
+#define PARAM_LEN_LEN 1
 
 using namespace std;
 
@@ -26,7 +27,9 @@ struct Param
 {
     friend class Packet;
     Param(uint8_t);
+    Param(uint64_t);
     Param(const string&);
+    Param(uint8_t*, uint64_t size);
     ~Param();
     Param& operator=(Param&& p);
     friend ostream& operator<<(ostream& os, const Param& param);
@@ -38,7 +41,7 @@ private:
 
 struct Packet
 {
-    Packet();
+    Packet() = default;
     ~Packet();
     void setHeader(const Header& header);
     Packet& addParam(Param* param);
