@@ -1,5 +1,6 @@
 #include "packet.hpp"
 #include <string>
+
 ostream& operator<<(ostream& os, Header& header)
 {
     os.write((const char*)&header.version, sizeof(header.version))
@@ -80,8 +81,8 @@ istream& operator>>(istream& is, Packet& packet)
                 *(arr + i) = data;
             }
             arr[param_len] = '\0';
-            Param* p = new Param(arr, param_len);
-            packet.params.push_back(p);
+            //Param* p = new Param(arr, param_len);
+            packet.params.push_back(unique_ptr<Param>(new Param(arr, param_len)));
             delete[] arr;
         }
         cnt += param_len + PARAM_LEN_LEN;
@@ -146,7 +147,7 @@ void Packet::setHeader(const Header& header)
     this->header.packet_len = HEADER_LEN;
 }
 
-Packet::~Packet()
+/* Packet::~Packet()
 {
     for(auto& p : params)
     {
@@ -156,12 +157,12 @@ Packet::~Packet()
             p = nullptr;
         }
     }
-}
+} */
 
-Packet&  Packet::addParam(Param* param)
+Packet&  Packet::addParam(Param& param)
 {
-    this->params.push_back(param);
-    this->header.packet_len += param->len + PARAM_LEN_LEN;
+    this->params.push_back(unique_ptr<Param>(&param));
+    this->header.packet_len += param.len + PARAM_LEN_LEN;
     return *this;
 }
 //todo

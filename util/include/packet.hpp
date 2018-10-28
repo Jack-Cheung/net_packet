@@ -3,7 +3,7 @@
 #include <sstream>
 #include <iostream>
 #include <vector>
-#include <boost/smart_ptr.hpp>
+#include <memory>
 
 #define HEADER_LEN  12
 #define PARAM_LEN_LEN 1
@@ -33,7 +33,6 @@ struct Param
     ~Param();
     Param& operator=(Param&& p);
     friend ostream& operator<<(ostream& os, const Param& param);
-    //friend istream& operator>>(istream& is, Param& param);
 private:
     uint8_t len;
     uint8_t* data;
@@ -42,13 +41,13 @@ private:
 struct Packet
 {
     Packet() = default;
-    ~Packet();
+    ~Packet() = default;
     void setHeader(const Header& header);
-    Packet& addParam(Param* param);
+    Packet& addParam(Param& param);
 
 private:
     Header header;
-    vector<Param*> params;
+    vector<unique_ptr<Param>> params;
     uint64_t len;
     
     friend ostream& operator<<(ostream& os, Packet& packet);

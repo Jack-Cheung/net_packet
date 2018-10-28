@@ -90,12 +90,12 @@ int main(int argc, char const *argv[])
                 //cout << "  ----" << address  << publickey << capcity;
                 header = {1,0b10000001,0,0,0};
                 pkt.setHeader(header);
-                pkt.addParam(new Param(address))
-                    .addParam(new Param(publickey))
-                    .addParam(new Param(capcity))
-                    .addParam(new Param(available))
-                    .addParam(new Param(location))
-                    .addParam(new Param(signature));
+                pkt.addParam(*(new Param(address)))
+                    .addParam(*new Param(publickey))
+                    .addParam(*new Param(capcity))
+                    .addParam(*new Param(available))
+                    .addParam(*new Param(location))
+                    .addParam(*new Param(signature));
                 ofstream os;
                 os.open("test1.txt", fstream::out | fstream::binary);
                 os << pkt;
