@@ -88,15 +88,7 @@ int main(int argc, char const *argv[])
                 uint64_t location = _vm[PARAM_LOCATION].as<uint64_t>();
                 string signature = _vm[PARAM_SIG].as<string>();
                 //cout << "  ----" << address  << publickey << capcity;
-                header = {1,0b10000001,0,0,0};
-                pkt.setHeader(header);
-                pkt.addParam(*(new Param(address)))
-                    .addParam(*new Param(publickey))
-                    .addParam(*new Param(capcity))
-                    .addParam(*new Param(available))
-                    .addParam(*new Param(location))
-                    .addParam(*new Param(signature));
-                ofstream os;
+                /* ofstream os;
                 os.open("test1.txt", fstream::out | fstream::binary);
                 os << pkt;
                 os.close();
@@ -107,10 +99,11 @@ int main(int argc, char const *argv[])
                 is >> p;
                 os.open("test3.txt", fstream::out);
                 os << p;
-                std::cout << "client start." << sizeof(long) << std::endl;
-/*                 client cl;
-
-                cl.run(); */
+                os.close();
+                std::cout << "client start." << sizeof(long) << std::endl; */
+                client cl;
+                cl.Register(address, publickey, capcity, available, location, signature);
+                cl.run();
                 
             }
         }
@@ -122,9 +115,6 @@ int main(int argc, char const *argv[])
         {
             cout << "unknown command : " << cmd << "\n command: register/report\n";
         }
-        
-
-        
     }
     else
     {
@@ -133,7 +123,7 @@ int main(int argc, char const *argv[])
 
 
     return 0;
-    try
+/*     try
     {
         std::cout << "client start." << sizeof(long) << std::endl;
         client cl;
@@ -144,5 +134,5 @@ int main(int argc, char const *argv[])
         std::cerr << e.what() << '\n';
     }
      
-    return 0;
+    return 0; */
 }

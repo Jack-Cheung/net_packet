@@ -14,6 +14,7 @@ using namespace std;
 
 struct Header
 {
+    friend class Packet;
     uint8_t version;
     uint8_t operation;
     uint8_t unfixed_size;
@@ -42,14 +43,21 @@ struct Packet
 {
     Packet() = default;
     ~Packet() = default;
+    Packet(const vector<char>&);
+    Packet(char*, uint64_t);
     void setHeader(const Header& header);
+    const Header& getHeader();
+    const Param& getParam(uint8_t idx);
     Packet& addParam(Param& param);
-
+    void serialize(vector<uint8_t>&);
+    void serialize(vector<char>&);
+    uint64_t serialize(char*);
 private:
     Header header;
     vector<unique_ptr<Param>> params;
     uint64_t len;
-    
+    // to do operator= (vector<char>)
+    // print
     friend ostream& operator<<(ostream& os, Packet& packet);
     friend istream& operator>>(istream& is, Packet& packet);
 };

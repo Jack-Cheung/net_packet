@@ -1,64 +1,76 @@
 #pragma once
-#include <boost/asio.hpp>
-#include <boost/smart_ptr.hpp>
-#include <vector>
-#include <boost/bind.hpp>
+#include <cstdlib>
+#include <cstring>
 #include <iostream>
+#include <fstream>
+#include <boost/asio.hpp>
+#include <vector>
 #include "packet.hpp"
-using namespace boost::asio;
+
+using boost::asio::ip::tcp;
+
+enum { max_length = 1024 };
+
+const int  REGISTER_CODE = 0b10000001; 
+
 class client
 {
-    typedef client this_type;
-    typedef ip::tcp::endpoint endpoint_type;
-    typedef ip::address address_type;
-    typedef ip::tcp::socket socket_type;
-    typedef boost::shared_ptr<socket_type> sock_ptr;
-    typedef std::vector<char> buffer_type;
-
-private:
-    io_service m_io;
-    buffer_type m_buf;
-    endpoint_type m_ep;
 
 public:
-    client():m_buf(100, 0),m_ep(address_type::from_string("127.0.0.1"), 6688)
+    client():m_s(m_io_context)
+    {}
+    void Register(const string& addr, const string& pubK, uint64_t cap, uint64_t avail, uint64_t loc, const string& sig)
     {
-        start();
+        Packet pkt;
+        Header header = {1,REGISTER_CODE,0,0,0};
+        pkt.setHeader(header);
+        pkt.addParam(*(new Param(addr)))
+            .addParam(*new Param(pubK))
+            .addParam(*new Param(cap))
+            .addParam(*new Param(avail))
+            .addParam(*new Param(loc))
+            .addParam(*new Param(sig));
+        pkt.serialize(m_buf);
     }
     void run()
     {
-        m_io.run();
-    }
-    void prepairData()
-    {
-
-    }
-    void getData();
-    void start()
-    {
-        sock_ptr sock(new socket_type(m_io));
-        sock->async_connect(m_ep, boost::bind(&this_type::conn_handler, this, boost::asio::placeholders::error, sock));
-    }
-    void conn_handler(const boost::system::error_code& ec, sock_ptr sock)
-    {   
-        //send data
-        if(ec)
+        
+        try
         {
-            return;
+            tcp::resolver resolver(m_io_context);
+            boost::asio::connect(m_s, resolver.resolve("127.0.0.1", "6688"));
+            std::cout << "send message: ";
+            std::cout.flush();
+            boost::asio::write(m_s, boost::asio::buffer(m_buf));
+            char reply[1024] = {0};
+            
+            
+            boost::system::error_code ec;
+            size_t reply_length = boost::asio::read(m_s, boost::asio::buffer(reply, 1024),ec);
+            
+            if (ec) {
+                std::cerr << ec << std::endl;
+            }
+            
+            std::cout << "Reply is: ";
+            std::cout.flush();
+            for(size_t i = 0; i < reply_length; i++)
+            {
+                std::cout << reply[i];
+            }
+            
+            std::cout.flush();
+            std::cout << "\n";
         }
-        //std::cout << "connect to " << sock->remote_endpoint().address();
-        //sock->async_read_some(buffer(m_buf), boost::bind(&this_type::read_handler, this, boost::asio::placeholders::error));
-        
-    }
-    void read_handler(const boost::system::error_code& ec)
-    {
-        
-        if (ec) {
-            return;
+        catch(const std::exception& e)
+        {
+            std::cerr << e.what() << '\n';
         }
-        std::cout << &m_buf[0] << std::endl;
+        
         
     }
 private:
-    void sendData();
+    vector<char> m_buf;
+    boost::asio::io_context m_io_context;
+    tcp::socket m_s;
 };

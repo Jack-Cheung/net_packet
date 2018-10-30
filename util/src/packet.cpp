@@ -23,7 +23,6 @@ ostream& operator<<(ostream& os, const Param& param)
 
 ostream& operator<<(ostream& os, Packet& packet)
 {
-    //packet.header.packet_len = packet.len;//to do
     os << packet.header;
     for(const auto &p : packet.params)
     {
@@ -58,12 +57,10 @@ istream& operator>>(istream& is, Packet& packet)
 {
     is >> packet.header;
     uint64_t packet_len = packet.header.packet_len;
-    cout << packet_len << "= packet len";
     uint64_t cnt = HEADER_LEN;
     while(cnt < packet_len)
     {
         uint8_t param_len = 0;
-        //is >> param_len;
         is.read((char*)&param_len, sizeof(param_len));
         Param* p = nullptr;
         if(1 == param_len)
@@ -81,7 +78,6 @@ istream& operator>>(istream& is, Packet& packet)
                 *(arr + i) = data;
             }
             arr[param_len] = '\0';
-            //Param* p = new Param(arr, param_len);
             packet.params.push_back(unique_ptr<Param>(new Param(arr, param_len)));
             delete[] arr;
         }
@@ -141,29 +137,77 @@ Param& Param::operator=(Param&& p)
     return *this;
 }
 
+Packet::Packet(const vector<char>& v)
+{
+    stringstream ss;
+    for(auto& c : v)
+    {
+        ss << c;
+    }
+    ss >> *this;
+}
+
+Packet::Packet(char* data, uint64_t size)
+{
+    stringstream ss;
+    for(uint64_t i = 0; i < size; ++i)
+    {
+        ss << data[i];
+    }
+    ss >> *this;
+}
+
 void Packet::setHeader(const Header& header)
 {
     this->header = header;
     this->header.packet_len = HEADER_LEN;
 }
 
-/* Packet::~Packet()
+const Header& Packet::getHeader()
 {
-    for(auto& p : params)
-    {
-        if(p)
-        {
-            delete p;
-            p = nullptr;
-        }
-    }
-} */
+    return this->header;
+}
+
+const Param& Packet::getParam(uint8_t idx)
+{
+    return *(this->params.at(idx));
+}
 
 Packet&  Packet::addParam(Param& param)
 {
     this->params.push_back(unique_ptr<Param>(&param));
     this->header.packet_len += param.len + PARAM_LEN_LEN;
     return *this;
+}
+
+void Packet::serialize(vector<char>& vec)
+{
+    stringstream ss;
+    ss << *this;
+    char c;
+    while(ss)
+    {
+        c = 0;
+        ss.read(&c, 1);
+        vec.push_back(c);
+    }
+    vec.pop_back();//to do
+}
+
+uint64_t Packet::serialize(char* arr)
+{
+    stringstream ss;
+    ss << *this;
+    char c;
+    uint64_t cnt = 0;
+    while(ss)
+    {
+        c = 0;
+        ss.read(&c, 1);
+        *(arr + cnt) = c;
+        cnt++;
+    }
+    return cnt;
 }
 //todo
 /* void Packet::addParam(std::initializer_list<pair<string,Param>> list)
