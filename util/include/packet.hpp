@@ -20,6 +20,7 @@ struct Header
     uint8_t unfixed_size;
     uint64_t packet_len;
     uint8_t open_session;
+    void prettyPrint(ostream& os);
     friend ostream& operator<<(ostream& os, Header& header);
     friend istream& operator>>(istream& is, Header& header);
 };
@@ -32,6 +33,7 @@ struct Param
     Param(const string&);
     Param(uint8_t*, uint64_t size);
     ~Param();
+    void prettyPrint(ostream& os);
     Param& operator=(Param&& p);
     friend ostream& operator<<(ostream& os, const Param& param);
 private:
@@ -52,12 +54,11 @@ struct Packet
     void serialize(vector<uint8_t>&);
     void serialize(vector<char>&);
     uint64_t serialize(char*);
+    void prettyPrint(ostream& os);
 private:
     Header header;
     vector<unique_ptr<Param>> params;
     uint64_t len;
-    // to do operator= (vector<char>)
-    // print
     friend ostream& operator<<(ostream& os, Packet& packet);
     friend istream& operator>>(istream& is, Packet& packet);
 };

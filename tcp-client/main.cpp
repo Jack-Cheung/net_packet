@@ -44,10 +44,11 @@ int main(int argc, char const *argv[])
     opt_report.add_options()
     ("cmd", "register, report etc")
     ("help,h", "help info")
-    ("capcity,c", "capcity of this storage node")
-    ("available,a","available space of this storage node")
-    ("location,l","location of this storage node")
-    ("filelist,f","file id list, unfixed size = n * 256")
+    ("capcity,c",  value<uint64_t>()->required()->default_value(80),"capcity of this storage node")
+    ("available,a",value<uint64_t>()->required()->default_value(20),"available space of this storage node")
+    ("location,l", value<uint64_t>()->required()->default_value(1),"location of this storage node")
+    ("signature,s",value<string>()->required()->default_value("d3754d4604e54c0b70a84eb38a52b3d2b5c7f7d1af44e4bc7b5478a6f4061edd"),"location of this storage node")
+    ("filelist,f",value<string>()->required()->default_value(string(255, 'x')), "file id list, unfixed size = n * 256")
     ;
 
     variables_map vm;
@@ -62,10 +63,6 @@ int main(int argc, char const *argv[])
         std::cerr << e.what() << '\n';
         return 0;
     }
-    
-    
-    
-
     if(vm.count("cmd"))
     {
         string cmd = vm["cmd"].as<string>();
@@ -87,20 +84,6 @@ int main(int argc, char const *argv[])
                 uint64_t available = _vm[PARAM_AVAIL].as<uint64_t>();
                 uint64_t location = _vm[PARAM_LOCATION].as<uint64_t>();
                 string signature = _vm[PARAM_SIG].as<string>();
-                //cout << "  ----" << address  << publickey << capcity;
-                /* ofstream os;
-                os.open("test1.txt", fstream::out | fstream::binary);
-                os << pkt;
-                os.close();
-                os.clear();
-                ifstream is;
-                is.open("test1.txt", fstream::in | fstream::binary);
-                Packet p;
-                is >> p;
-                os.open("test3.txt", fstream::out);
-                os << p;
-                os.close();
-                std::cout << "client start." << sizeof(long) << std::endl; */
                 client cl;
                 cl.Register(address, publickey, capcity, available, location, signature);
                 cl.run();
@@ -109,7 +92,16 @@ int main(int argc, char const *argv[])
         }
         else if(cmd == "report")
         {
-
+            variables_map _vm;
+            store(command_line_parser(argc, argv).options(opt_report).positional(pod).run(), _vm);
+            uint64_t capcity = _vm[PARAM_CAPACITY].as<uint64_t>();
+            uint64_t available = _vm[PARAM_AVAIL].as<uint64_t>();
+            uint64_t location = _vm[PARAM_LOCATION].as<uint64_t>();
+            string signature = _vm[PARAM_SIG].as<string>();
+            string filelist = _vm[PARAM_FILELIST].as<string>();
+            client cl;
+            cl.Report(capcity, available, location, signature, filelist);
+            cl.run(false);
         }
         else
         {
@@ -123,16 +115,4 @@ int main(int argc, char const *argv[])
 
 
     return 0;
-/*     try
-    {
-        std::cout << "client start." << sizeof(long) << std::endl;
-        client cl;
-        cl.run();
-    }
-    catch(const std::exception& e)
-    {
-        std::cerr << e.what() << '\n';
-    }
-     
-    return 0; */
 }

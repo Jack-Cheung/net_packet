@@ -1,6 +1,8 @@
 #include "packet.hpp"
 #include <string>
 
+
+
 ostream& operator<<(ostream& os, Header& header)
 {
     os.write((const char*)&header.version, sizeof(header.version))
@@ -85,6 +87,16 @@ istream& operator>>(istream& is, Packet& packet)
     }
 }
 
+void Header::prettyPrint(ostream& os)
+{
+    os << "HEADER:\n";
+    os << "version\t\t" << to_string(version)  << endl;
+    os << "operation code\t\t" << to_string(operation) << endl;
+    os << "unfixed size\t\t" << to_string(unfixed_size) << endl;
+    os << "packet length\t\t" << to_string(packet_len) << endl;
+    os << "if open session\t\t" << to_string(open_session) << endl;
+}
+
 Param::Param(uint8_t data)
 {
     this->data = new uint8_t(data);
@@ -135,6 +147,14 @@ Param& Param::operator=(Param&& p)
         p.len = 0;
     }
     return *this;
+}
+
+void Param::prettyPrint(ostream& os)
+{
+    os << "PARAM [len = " << to_string(len) << "]\n";
+    os << "content = { ";
+    os.write((const char*)data, len);
+    os << " }\n";
 }
 
 Packet::Packet(const vector<char>& v)
@@ -207,7 +227,16 @@ uint64_t Packet::serialize(char* arr)
         *(arr + cnt) = c;
         cnt++;
     }
-    return cnt;
+    return cnt - 1;
+}
+
+void Packet::prettyPrint(ostream& os)
+{
+    header.prettyPrint(os);
+    for(auto& p : params)
+    {
+        p->prettyPrint(os);
+    }
 }
 //todo
 /* void Packet::addParam(std::initializer_list<pair<string,Param>> list)
