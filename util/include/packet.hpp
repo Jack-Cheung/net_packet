@@ -5,16 +5,12 @@
 #include <vector>
 #include <memory>
 
-#define HEADER_LEN  12
-#define PARAM_LEN_LEN 1
-
 using namespace std;
-
-
 
 struct Header
 {
     friend class Packet;
+    const static int HEADER_LEN = 12;
     uint8_t version;
     uint8_t operation;
     uint8_t unfixed_size;
@@ -29,8 +25,6 @@ struct Param
 {
     friend class Packet;
     Param(uint8_t);
-    //aram(uint64_t);
-
     template <typename T>
     Param(T param)
     {
@@ -40,15 +34,18 @@ struct Param
         std::copy(p, p + len, data);
     }
     Param(const string&);
-    Param(uint8_t*, uint64_t size);
+    Param(uint8_t*, uint32_t size);
     ~Param();
     void prettyPrint(ostream& os);
     Param& operator=(Param&& p);
     friend ostream& operator<<(ostream& os, const Param& param);
-private:
-    uint8_t len;
+    const static int PARAM_LEN_LEN = 4;
+private:    
+    uint32_t len;
+protected:
     uint8_t* data;
 };
+
 
 struct Packet
 {
@@ -71,12 +68,5 @@ private:
     friend ostream& operator<<(ostream& os, Packet& packet);
     friend istream& operator>>(istream& is, Packet& packet);
 };
-
-//to do
-    //Packet& addParam(Param& param);
-
-    //void addParam(std::initializer_list<pair<string,Param>> list);
-
-    //boost::shared_ptr<uint8_t[]> data; todo
 
 

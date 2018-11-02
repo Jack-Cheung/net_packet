@@ -20,7 +20,7 @@ ostream& operator<<(ostream& os, const Param& param)
     os.write((const char*)&param.len, sizeof(param.len));
     for(int i = 0; i < param.len; ++i)
     {
-        os.write((const char*)(param.data + i),sizeof(uint8_t));
+        os.write((const char*)(param.data + i), sizeof(uint8_t));
     }
     return os;
 }
@@ -49,10 +49,10 @@ istream& operator>>(istream& is, Packet& packet)
 {
     is >> packet.header;
     uint64_t packet_len = packet.header.packet_len;
-    uint64_t cnt = HEADER_LEN;
+    uint64_t cnt = Header::HEADER_LEN;
     while(cnt < packet_len)
     {
-        uint8_t param_len = 0;
+        uint32_t param_len = 0;// to do
         is.read((char*)&param_len, sizeof(param_len));
         Param* p = nullptr;
         if(1 == param_len)
@@ -69,11 +69,10 @@ istream& operator>>(istream& is, Packet& packet)
         {
             uint8_t* arr = new uint8_t[param_len];
             is.read((char*)arr, param_len);
-            //arr[param_len] = '\0';
             packet.params.push_back(unique_ptr<Param>(new Param(arr, param_len)));
             delete[] arr;
         }
-        cnt += param_len + PARAM_LEN_LEN;
+        cnt += param_len + Param::PARAM_LEN_LEN;
     }
 }
 
@@ -93,7 +92,7 @@ Param::Param(uint8_t data)
     len = 1;
 }
 
-Param::Param(uint8_t* data, uint64_t size)
+Param::Param(uint8_t* data, uint32_t size)
 {
     this->len = size;
     this->data = new uint8_t[len];
@@ -141,7 +140,6 @@ void Param::prettyPrint(ostream& os)
     ::memset(buffer, 0, buffer_size);
     uint8_t cnt = 0;
     uint8_t buf_cursor = 0;
-    
     while(cnt < len)
     {
         std::sprintf(buffer + buf_cursor, "%02X ", *(data + cnt));
@@ -150,9 +148,6 @@ void Param::prettyPrint(ostream& os)
     }
     os.write((const char*)buffer, buffer_size);
     os << " }\n";
-    /* os << "\tcontent = { ";
-    os.write((const char*)data, len);
-    os << " }\n"; */
     delete[] buffer;
 }
 
@@ -176,7 +171,7 @@ Packet::Packet(char* data, uint64_t size)
 void Packet::setHeader(const Header& header)
 {
     this->header = header;
-    this->header.packet_len = HEADER_LEN;
+    this->header.packet_len = Header::HEADER_LEN;
 }
 
 const Header& Packet::getHeader()
@@ -192,7 +187,7 @@ const Param& Packet::getParam(uint8_t idx)
 Packet&  Packet::addParam(Param& param)
 {
     this->params.push_back(unique_ptr<Param>(&param));
-    this->header.packet_len += param.len + PARAM_LEN_LEN;
+    this->header.packet_len += param.len + Param::PARAM_LEN_LEN;
     return *this;
 }
 
@@ -212,7 +207,6 @@ void Packet::serialize(vector<char>& vec)
 
 uint64_t Packet::serialize(char* arr)
 {
-    //to do
     stringstream ss;
     ss << *this;
     char c;

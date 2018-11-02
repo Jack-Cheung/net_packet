@@ -89,9 +89,9 @@ public:
         pkt.serialize(m_buf);
         std::cout << "prepaired to send: 1 m_buf.size=" << m_buf.size() << endl;
         pkt.prettyPrint(cout);
-        Packet newPkt(m_buf);
+        /* Packet newPkt(m_buf);
         cout << "!!\n";
-        newPkt.prettyPrint(cout);
+        newPkt.prettyPrint(cout); */
     }
 
     void run(bool positiveSession = true)
