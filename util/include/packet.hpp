@@ -40,7 +40,7 @@ struct Param
     Param& operator=(Param&& p);
     friend ostream& operator<<(ostream& os, const Param& param);
     const static int PARAM_LEN_LEN = 4;
-private:    
+private:
     uint32_t len;
 protected:
     uint8_t* data;
