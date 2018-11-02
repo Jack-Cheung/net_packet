@@ -23,18 +23,19 @@ uint64_t reply_register(char* data)
 {
     memset(data, 0, max_length);
     Packet pkt;
-    Header header = {1,0b10000001,0,0,0};
+    Header header = {1,REGISTER_CODE,0,0,0};
     pkt.setHeader(header);
     string primaryPublicKey = "surpernodepublickey";
     string servicePublicKey = "servicepublickey";
     pkt.addParam(*new Param(primaryPublicKey))
         .addParam(*new Param(servicePublicKey));
     uint64_t length = pkt.serialize(data);
-    pkt.prettyPrint(cout);
+    //pkt.prettyPrint(cout);
     return length;
 }
 uint64_t reply_report(char* data)
 {
+    //todo
     memset(data, 0, max_length);
     Packet pkt;
     Header header = {1, REPORT_CODE,0,0,0};
@@ -47,6 +48,43 @@ uint64_t reply_report(char* data)
     pkt.prettyPrint(cout);
     return length;
 }
+uint64_t reply_exam(char* data)
+{
+    memset(data, 0, max_length);
+    Packet pkt;
+    Header header = {1, EXAM_CODE,0,0,0};
+    pkt.setHeader(header);
+    int64_t examser = 1;
+    int32_t examlen = 2;
+    string signature = "this is a signature";
+    int16_t fileid = 888;
+    int8_t postAction = 1;
+    int8_t count = 1;
+    pkt.addParam(*new Param(examser))
+        .addParam(*new Param(examlen))
+        .addParam(*new Param(signature))
+        .addParam(*new Param(fileid))
+        .addParam(*new Param(postAction))
+        .addParam(*new Param(count))
+        ;
+    uint64_t length = pkt.serialize(data);
+    //pkt.prettyPrint(cout);
+    return length;
+}
+
+uint64_t reply_sendfile(char* data)
+{
+    memset(data, 0, max_length);
+    Packet pkt;
+    Header header = {1, SENDFILE_CODE,0,0,0};
+    pkt.setHeader(header);
+    string signature = "this is a signature";
+    pkt.addParam(*new Param(signature));
+    uint64_t length = pkt.serialize(data);
+    //pkt.prettyPrint(cout);
+    return length;
+}
+
 void session(tcp::socket sock)
 {
   try
@@ -60,6 +98,7 @@ void session(tcp::socket sock)
     else if (error)
         throw boost::system::system_error(error); */ // Some other error.
     Packet pkt(data, length);
+    pkt.prettyPrint(cout);
     switch(pkt.getHeader().operation)
     {
         case REGISTER_CODE:
@@ -69,9 +108,10 @@ void session(tcp::socket sock)
             break;
     }
 
+
+    boost::asio::write(sock, boost::asio::buffer(data, length));
     Packet pkt1(data, length);
     pkt1.prettyPrint(cout);
-    boost::asio::write(sock, boost::asio::buffer(data, length));
     std::cout << "thread finished" << std::endl;
    }
   catch (std::exception& e)
@@ -93,10 +133,19 @@ void session_pessive(tcp::socket sock, int cmd)
                 length = reply_report(data);
             }
             break;
+        case EXAM_CODE:
+            length = reply_exam(data);
+            break;
+        case SENDFILE_CODE:
+            {
+                length = reply_sendfile(data);
+                break;
+            }
         default:
             break;
     }
     length = sock.write_some(boost::asio::buffer(data, length));
+
     boost::system::error_code error;
     length = boost::asio::read(sock, boost::asio::buffer(data), error);
     Packet pkt(data, length);
@@ -120,7 +169,9 @@ void server(boost::asio::io_context& io_context, unsigned short port, int cmd,  
     switch (cmd)
     {
         case REPORT_CODE:
-            std::thread(session_pessive, a.accept(), REPORT_CODE).detach();
+        case EXAM_CODE:
+        case SENDFILE_CODE:
+            std::thread(session_pessive, a.accept(), cmd).detach();
             break;
     
         default:
@@ -141,6 +192,14 @@ int main(int argc, char* argv[])
         if (string(argv[1]) == "report")
         {
             server(io_context, 6688, REPORT_CODE, false);   
+        }
+        else if(string(argv[1]) == "exam")
+        {
+            server(io_context, 6688, EXAM_CODE, false);   
+        }
+        else if(string(argv[1]) == "sendfile")
+        {
+            server(io_context, 6688, SENDFILE_CODE, false);
         }
     }
     else 

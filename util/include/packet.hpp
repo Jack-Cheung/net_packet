@@ -29,7 +29,16 @@ struct Param
 {
     friend class Packet;
     Param(uint8_t);
-    Param(uint64_t);
+    //aram(uint64_t);
+
+    template <typename T>
+    Param(T param)
+    {
+        len = sizeof(param);
+        this->data = new uint8_t[len];
+        uint8_t* p = (uint8_t*)&param;
+        std::copy(p, p + len, data);
+    }
     Param(const string&);
     Param(uint8_t*, uint64_t size);
     ~Param();

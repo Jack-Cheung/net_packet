@@ -7,6 +7,8 @@
 using namespace boost::program_options;
 int main(int argc, char const *argv[])
 {
+
+
     const string PARAM_ADDRESS = "address";
     const string PARAM_PUBKEY = "publickey";
     const string PARAM_CAPACITY = "capcity";
@@ -14,6 +16,21 @@ int main(int argc, char const *argv[])
     const string PARAM_LOCATION = "location";
     const string PARAM_SIG = "signature";
     const string PARAM_FILELIST = "filelist";
+    const string PARAM_EXAMSERIAL = "examserial";
+    const string PARAM_EXAMLENGTH = "examlength";
+    const string PARAM_EXAM = "exam";
+    const string PARAM_FILECNT = "filecount";
+    const string PARAM_FILEID = "fileid";
+    const string PARAM_CNT = "count";
+    const string PARAM_ANSER = "anwser";
+    const string PARAM_FILESIZE = "filesize";
+    const string PARAM_BLOCKCNT = "blockcount";
+    const string PARAM_BLOCKNUM = "blocknum";
+    const string PARAM_BLOCKSIZE = "blocksize";
+ 
+
+    
+
 
     options_description opts_all("storage node command line");
     positional_options_description pod;
@@ -48,7 +65,31 @@ int main(int argc, char const *argv[])
     ("available,a",value<uint64_t>()->required()->default_value(20),"available space of this storage node")
     ("location,l", value<uint64_t>()->required()->default_value(1),"location of this storage node")
     ("signature,s",value<string>()->required()->default_value("d3754d4604e54c0b70a84eb38a52b3d2b5c7f7d1af44e4bc7b5478a6f4061edd"),"location of this storage node")
-    ("filelist,f",value<string>()->required()->default_value(string(255, 'x')), "file id list, unfixed size = n * 256")
+    ("filelist,f",value<string>()->required()->default_value(string(64, 'x')), "file id list, unfixed size = n * 256")
+    ;
+    options_description opt_exam("exam");
+    opt_exam.add_options()
+    ("cmd", "register, report etc")
+    ("help,h", "help info")
+    ("examserial,s",  value<uint64_t>()->required()->default_value(80),"")
+    ("examlength,L",value<uint32_t>()->required()->default_value(20),"")
+    ("exam, e", value<uint64_t>()->required()->default_value(1),"?")
+    ("signature,s",value<string>()->required()->default_value("d3754d4604e54c0b70a84eb38a52b3d2b5c7f7d1af44e4bc7b5478a6f4061edd"),"")
+    ("filecount,c",value<uint16_t>()->required()->default_value(100), "")
+    ("fileid,i",value<uint64_t>()->required()->default_value(1), "")
+    ("count,C",value<uint8_t>()->required()->default_value(50), "")
+    ("anwser,a",value<string>()->required()->default_value("mine is right anwser"), "")
+    ;
+
+    options_description opt_send("sendfile");
+    opt_send.add_options()
+    ("cmd", "register, report etc")
+    ("help,h", "help info")
+    ("filesize,s",  value<uint64_t>()->required()->default_value(80),"")
+    ("blockcount,c",value<uint8_t>()->required()->default_value(20),"")
+    ("blocknum, n", value<uint8_t>()->required()->default_value(1),"")
+    ("blocksize, b", value<uint8_t>()->required()->default_value(1),"?")
+    ("signature,s",value<string>()->required()->default_value("d3754d4604e54c0b70a84eb38a52b3d2b5c7f7d1af44e4bc7b5478a6f4061edd"),"")
     ;
 
     variables_map vm;
@@ -87,7 +128,6 @@ int main(int argc, char const *argv[])
                 client cl;
                 cl.Register(address, publickey, capcity, available, location, signature);
                 cl.run();
-                
             }
         }
         else if(cmd == "report")
@@ -101,6 +141,34 @@ int main(int argc, char const *argv[])
             string filelist = _vm[PARAM_FILELIST].as<string>();
             client cl;
             cl.Report(capcity, available, location, signature, filelist);
+            cl.run(false);
+        }
+        else if(cmd == "exam")
+        {
+            variables_map _vm;
+            store(command_line_parser(argc, argv).options(opt_exam).positional(pod).run(), _vm);
+            uint64_t examserial = _vm[PARAM_EXAMSERIAL].as<uint64_t>();
+            uint32_t examlength = _vm[PARAM_EXAMLENGTH].as<uint32_t>();
+            string signature = _vm[PARAM_SIG].as<string>();
+            uint16_t filecount =  _vm[PARAM_FILECNT].as<uint16_t>();
+            uint64_t fileid =  _vm[PARAM_FILEID].as<uint64_t>();
+            uint8_t count = _vm[PARAM_CNT].as<uint8_t>();
+            string anwser = _vm[PARAM_ANSER].as<string>();
+            client cl;
+            cl.Exam(examserial, examlength, signature, filecount, fileid, count, anwser);
+            cl.run(false);
+        }
+        else if(cmd == "sendfile")
+        {
+            variables_map _vm;
+            store(command_line_parser(argc, argv).options(opt_send).positional(pod).run(), _vm);
+            uint64_t filesize = _vm[PARAM_FILESIZE].as<uint64_t>();
+            uint8_t blockcount = _vm[PARAM_BLOCKCNT].as<uint8_t>();
+            uint8_t blocknum = _vm[PARAM_BLOCKNUM].as<uint8_t>();
+            uint8_t blocksize = _vm[PARAM_BLOCKSIZE].as<uint8_t>();
+            string signature = _vm[PARAM_SIG].as<string>();
+            client cl;
+            cl.SendFile(filesize, blockcount, blocknum, blocksize, signature);
             cl.run(false);
         }
         else

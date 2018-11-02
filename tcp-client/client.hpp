@@ -57,9 +57,45 @@ public:
         pkt.prettyPrint(cout);
     }
 
+    void Exam(uint64_t examser, uint32_t examlen, const string& signature, uint16_t filecount, uint64_t fileid, uint8_t count,  const string& anwser)
+    {
+        Packet pkt;
+        Header header = {1,EXAM_CODE,0,0,0};
+        pkt.setHeader(header);
+        pkt.addParam(*(new Param(examser)))
+            .addParam(*new Param(examlen))
+            .addParam(*new Param(signature))
+            .addParam(*new Param(filecount))
+            .addParam(*new Param(fileid))
+            .addParam(*new Param(count))
+            .addParam(*new Param(anwser))
+            ;
+        pkt.serialize(m_buf);
+        std::cout << "prepaired to send:" << endl;
+        pkt.prettyPrint(cout);
+    }
+
+    void SendFile(uint64_t filesize, uint8_t blockcount, uint8_t blocknum, uint8_t blocksize, const string& signature)
+    {
+        Packet pkt;
+        Header header = {1,SENDFILE_CODE,0,0,0};
+        pkt.setHeader(header);
+        pkt.addParam(*(new Param(filesize)))
+            .addParam(*new Param(blockcount))
+            .addParam(*new Param(blocknum))
+            .addParam(*new Param(blocksize))
+            .addParam(*new Param(signature))
+            ;
+        pkt.serialize(m_buf);
+        std::cout << "prepaired to send: 1 m_buf.size=" << m_buf.size() << endl;
+        pkt.prettyPrint(cout);
+        Packet newPkt(m_buf);
+        cout << "!!\n";
+        newPkt.prettyPrint(cout);
+    }
+
     void run(bool positiveSession = true)
     {
-        
         try
         {
             tcp::resolver resolver(m_io_context);

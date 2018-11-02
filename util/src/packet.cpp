@@ -1,6 +1,6 @@
 #include "packet.hpp"
 #include <string>
-
+#include <fstream>
 
 
 ostream& operator<<(ostream& os, Header& header)
@@ -43,18 +43,6 @@ istream& operator>>(istream& is, Header& header)
     return is;
 }
 
-/* istream& operator>>(istream& is, Param& param)
-{
-    is >> param.len;
-    uint8_t* ptr = param.data;
-    for(int i = 0; i < param.len; ++i)
-    {
-        is >> *ptr;
-        ++ptr;
-    }
-    return is;
-} */
-
 istream& operator>>(istream& is, Packet& packet)
 {
     is >> packet.header;
@@ -69,17 +57,17 @@ istream& operator>>(istream& is, Packet& packet)
         {
             uint8_t data;
             is.read((char*)&data, sizeof(data));
+            packet.params.push_back(unique_ptr<Param>(new Param(&data, param_len)));
+        }
+        else if(param_len < 1)
+        {
+            throw std::logic_error(" param len = " + to_string(param_len));
         }
         else
         {
             uint8_t* arr = new uint8_t[param_len];
-            for(uint64_t i = 0; i < param_len; i++)
-            {
-                uint8_t data;
-                is.read((char*)&data, sizeof(data));
-                *(arr + i) = data;
-            }
-            arr[param_len] = '\0';
+            is.read((char*)arr, param_len);
+            //arr[param_len] = '\0';
             packet.params.push_back(unique_ptr<Param>(new Param(arr, param_len)));
             delete[] arr;
         }
@@ -101,14 +89,6 @@ Param::Param(uint8_t data)
 {
     this->data = new uint8_t(data);
     len = 1;
-}
-
-Param::Param(uint64_t param)
-{
-    len = sizeof(param);
-    this->data = new uint8_t[len];
-    uint8_t* p = (uint8_t*)&param;
-    std::copy(p, p + len, data);
 }
 
 Param::Param(uint8_t* data, uint64_t size)
@@ -152,7 +132,7 @@ Param& Param::operator=(Param&& p)
 void Param::prettyPrint(ostream& os)
 {
     os << "PARAM [len = " << to_string(len) << "]\n";
-    os << "content = { ";
+    os << "\tcontent = { ";
     os.write((const char*)data, len);
     os << " }\n";
 }
@@ -162,7 +142,7 @@ Packet::Packet(const vector<char>& v)
     stringstream ss;
     for(auto& c : v)
     {
-        ss << c;
+        ss.write(&c, 1);
     }
     ss >> *this;
 }
@@ -170,10 +150,7 @@ Packet::Packet(const vector<char>& v)
 Packet::Packet(char* data, uint64_t size)
 {
     stringstream ss;
-    for(uint64_t i = 0; i < size; ++i)
-    {
-        ss << data[i];
-    }
+    ss.write(data, size);
     ss >> *this;
 }
 
@@ -216,6 +193,7 @@ void Packet::serialize(vector<char>& vec)
 
 uint64_t Packet::serialize(char* arr)
 {
+    //to do
     stringstream ss;
     ss << *this;
     char c;
@@ -232,23 +210,13 @@ uint64_t Packet::serialize(char* arr)
 
 void Packet::prettyPrint(ostream& os)
 {
+    os << string(64, '=') << endl;
     header.prettyPrint(os);
+    os << string(64, '-') << endl;
+    uint8_t cnt = 0;
     for(auto& p : params)
     {
+        os << "#" + to_string(++cnt) + "  " ;
         p->prettyPrint(os);
     }
 }
-//todo
-/* void Packet::addParam(std::initializer_list<pair<string,Param>> list)
-{
-    for(auto it: list)
-    {
-        this->params.insert(it);
-    }
-    
-    for(auto itr = list.begin(); itr < list.end(); ++itr)
-    {
-        this->params.insert(*itr);
-    }
-    
-} */
