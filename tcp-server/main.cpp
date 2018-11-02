@@ -68,7 +68,7 @@ uint64_t reply_exam(char* data)
         .addParam(*new Param(count))
         ;
     uint64_t length = pkt.serialize(data);
-    //pkt.prettyPrint(cout);
+    pkt.prettyPrint(cout);
     return length;
 }
 
@@ -81,7 +81,7 @@ uint64_t reply_sendfile(char* data)
     string signature = "this is a signature";
     pkt.addParam(*new Param(signature));
     uint64_t length = pkt.serialize(data);
-    //pkt.prettyPrint(cout);
+    pkt.prettyPrint(cout);
     return length;
 }
 
@@ -148,6 +148,7 @@ void session_pessive(tcp::socket sock, int cmd)
 
     boost::system::error_code error;
     length = boost::asio::read(sock, boost::asio::buffer(data), error);
+    std::cout << "Resive :" << std::endl;
     Packet pkt(data, length);
     pkt.prettyPrint(cout);
     std::cout << "thread finished" << std::endl;

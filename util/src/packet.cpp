@@ -1,6 +1,8 @@
 #include "packet.hpp"
 #include <string>
 #include <fstream>
+#include <cstdio>
+#include <memory.h>
 
 
 ostream& operator<<(ostream& os, Header& header)
@@ -132,9 +134,26 @@ Param& Param::operator=(Param&& p)
 void Param::prettyPrint(ostream& os)
 {
     os << "PARAM [len = " << to_string(len) << "]\n";
-    os << "\tcontent = { ";
-    os.write((const char*)data, len);
+    os << "\thex content = { ";
+    uint8_t step = 3;
+    int buffer_size = step * len + 1;
+    char* buffer = new char[buffer_size];
+    ::memset(buffer, 0, buffer_size);
+    uint8_t cnt = 0;
+    uint8_t buf_cursor = 0;
+    
+    while(cnt < len)
+    {
+        std::sprintf(buffer + buf_cursor, "%02X ", *(data + cnt));
+        ++cnt;
+        buf_cursor += step;
+    }
+    os.write((const char*)buffer, buffer_size);
     os << " }\n";
+    /* os << "\tcontent = { ";
+    os.write((const char*)data, len);
+    os << " }\n"; */
+    delete[] buffer;
 }
 
 Packet::Packet(const vector<char>& v)
