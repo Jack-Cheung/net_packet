@@ -122,7 +122,7 @@ void session(tcp::socket sock)
         throw boost::system::system_error(error); */ // Some other error.
     Packet pkt(data, length);
     pkt.prettyPrint(cout);
-    switch(pkt.getHeader().operation)
+    switch(pkt.getHeader().operation[0])
     {
         case REGISTER_CODE:
             length = reply_register(data);
