@@ -18,7 +18,7 @@ ostream& operator<<(ostream& os, Header& header)
 ostream& operator<<(ostream& os, const Param& param)
 {
     os.write((const char*)&param.len, sizeof(param.len));
-    for(int i = 0; i < param.len; ++i)
+    for(uint32_t i = 0; i < param.len; ++i)
     {
         os.write((const char*)(param.data + i), sizeof(uint8_t));
     }
@@ -107,7 +107,11 @@ Param::Param(const string& str)
 }
 
 Param::~Param()
-{
+{   
+    if(data == nullptr)
+    {
+        return;
+    }
     if(len == 1)
     {
         delete data;
@@ -118,6 +122,7 @@ Param::~Param()
     }
 }
 
+//to do
 Param& Param::operator=(Param&& p)
 {
     if(this != &p)
@@ -135,11 +140,11 @@ void Param::prettyPrint(ostream& os)
     os << "PARAM [len = " << to_string(len) << "]\n";
     os << "\thex content = { ";
     uint8_t step = 3;
-    int buffer_size = step * len + 1;
+    uint64_t buffer_size = step * len + 1;
     char* buffer = new char[buffer_size];
     ::memset(buffer, 0, buffer_size);
-    uint8_t cnt = 0;
-    uint8_t buf_cursor = 0;
+    uint32_t cnt = 0;
+    uint32_t buf_cursor = 0;
     while(cnt < len)
     {
         std::sprintf(buffer + buf_cursor, "%02X ", *(data + cnt));

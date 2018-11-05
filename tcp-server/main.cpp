@@ -85,6 +85,29 @@ uint64_t reply_sendfile(char* data)
     return length;
 }
 
+uint64_t reply_savefile(char* data)
+{
+    cout << "reply savefile" << endl;
+    memset(data, 0, max_length);
+    Packet pkt;
+    Header header = {1, SAVEFILE_CODE,0,0,0};
+    pkt.setHeader(header);
+    string fileid = "this is a test fileid";
+    uint32_t key = 888;
+    uint64_t exp = 1000;
+    string signature = "this is a signature";
+    pkt.addParam(*new Param(fileid))
+    .addParam(*new Param(key))
+    .addParam(*new Param(exp))
+    .addParam(*new Param(signature));
+    uint64_t length = pkt.serialize(data);
+    cout << "reply savefile length="<< to_string(length) << endl;
+    pkt.prettyPrint(cout);
+    return length;
+}
+
+
+
 void session(tcp::socket sock)
 {
   try
@@ -141,6 +164,11 @@ void session_pessive(tcp::socket sock, int cmd)
                 length = reply_sendfile(data);
                 break;
             }
+        case SAVEFILE_CODE:
+            {
+                length = reply_savefile(data);
+                break;
+            }
         default:
             break;
     }
@@ -172,6 +200,7 @@ void server(boost::asio::io_context& io_context, unsigned short port, int cmd,  
         case REPORT_CODE:
         case EXAM_CODE:
         case SENDFILE_CODE:
+        case SAVEFILE_CODE:
             std::thread(session_pessive, a.accept(), cmd).detach();
             break;
     
@@ -201,6 +230,10 @@ int main(int argc, char* argv[])
         else if(string(argv[1]) == "sendfile")
         {
             server(io_context, 6688, SENDFILE_CODE, false);
+        }
+        else if(string(argv[1]) == "savefile")
+        {
+            server(io_context, 6688, SAVEFILE_CODE, false);
         }
     }
     else 

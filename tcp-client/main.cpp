@@ -27,8 +27,20 @@ int main(int argc, char const *argv[])
     const string PARAM_BLOCKCNT = "blockcount";
     const string PARAM_BLOCKNUM = "blocknum";
     const string PARAM_BLOCKSIZE = "blocksize";
- 
+    const string PARAM_BLOCK = "block";
+    const string PARAM_VERIFYID = "verifyId";
 
+ 
+/*
+("fileid,i",  value<string>()->required()->default_value("file id 256bit"),"")
+    ("verifyId,c",value<string>()->required()->default_value("encrypted sha256 "),"")
+    ("available,a", value<uint8_t>()->required()->default_value(1),"")
+    ("signature,s",value<string>()->required()->default_value("d3754d4604e54c0b70a8
+
+
+
+
+*/
     
 
 
@@ -89,6 +101,17 @@ int main(int argc, char const *argv[])
     ("blockcount,c",value<uint8_t>()->required()->default_value(20),"")
     ("blocknum, n", value<uint8_t>()->required()->default_value(1),"")
     ("blocksize, b", value<uint8_t>()->required()->default_value(1),"?")
+    ("block, B", value<string>()->required()->default_value(string(512, 'B')), " file block data")
+    ("signature,s",value<string>()->required()->default_value("d3754d4604e54c0b70a84eb38a52b3d2b5c7f7d1af44e4bc7b5478a6f4061edd"),"")
+    ;
+
+    options_description opt_save("savefile");
+    opt_save.add_options()
+    ("cmd", "register, report etc")
+    ("help,h", "help info")
+    ("fileid,i",  value<string>()->required()->default_value("file id 256bit"),"")
+    ("verifyId,c",value<string>()->required()->default_value("encrypted sha256 "),"")
+    ("available,a", value<uint8_t>()->required()->default_value(1),"")
     ("signature,s",value<string>()->required()->default_value("d3754d4604e54c0b70a84eb38a52b3d2b5c7f7d1af44e4bc7b5478a6f4061edd"),"")
     ;
 
@@ -166,9 +189,22 @@ int main(int argc, char const *argv[])
             uint8_t blockcount = _vm[PARAM_BLOCKCNT].as<uint8_t>();
             uint8_t blocknum = _vm[PARAM_BLOCKNUM].as<uint8_t>();
             uint8_t blocksize = _vm[PARAM_BLOCKSIZE].as<uint8_t>();
+            string block = _vm[PARAM_BLOCK].as<string>();
             string signature = _vm[PARAM_SIG].as<string>();
             client cl;
-            cl.SendFile(filesize, blockcount, blocknum, blocksize, signature);
+            cl.SendFile(filesize, blockcount, blocknum, blocksize, block, signature);
+            cl.run(false);
+        }
+        else if(cmd == "savefile")
+        {
+            variables_map _vm;
+            store(command_line_parser(argc, argv).options(opt_save).positional(pod).run(), _vm);
+            string fileid = _vm[PARAM_FILEID].as<string>();
+            string verifyId = _vm[PARAM_VERIFYID].as<string>();
+            uint8_t avail = _vm[PARAM_AVAIL].as<uint8_t>();
+            string sig = _vm[PARAM_SIG].as<string>();
+            client cl;
+            cl.SaveFile(fileid, verifyId, avail, sig);
             cl.run(false);
         }
         else

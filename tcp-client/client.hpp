@@ -75,7 +75,7 @@ public:
         pkt.prettyPrint(cout);
     }
 
-    void SendFile(uint64_t filesize, uint8_t blockcount, uint8_t blocknum, uint8_t blocksize, const string& signature)
+    void SendFile(uint64_t filesize, uint8_t blockcount, uint8_t blocknum, uint8_t blocksize, const string& block, const string& signature)
     {
         Packet pkt;
         Header header = {1,SENDFILE_CODE,0,0,0};
@@ -84,6 +84,7 @@ public:
             .addParam(*new Param(blockcount))
             .addParam(*new Param(blocknum))
             .addParam(*new Param(blocksize))
+            .addParam(*new Param(block))
             .addParam(*new Param(signature))
             ;
         pkt.serialize(m_buf);
@@ -93,6 +94,26 @@ public:
         cout << "!!\n";
         newPkt.prettyPrint(cout); */
     }
+
+    void SaveFile(const string& fileid, const string& verifyId, uint8_t avail, const string& sig)
+    {
+        Packet pkt;
+        Header header = {1,SAVEFILE_CODE,0,0,0};
+        pkt.setHeader(header);
+        pkt.addParam(*(new Param(fileid)))
+            .addParam(*new Param(verifyId))
+            .addParam(*new Param(avail))
+            .addParam(*new Param(sig))
+            ;
+        pkt.serialize(m_buf);
+        std::cout << "prepaired to send: 1 m_buf.size=" << m_buf.size() << endl;
+        pkt.prettyPrint(cout);
+        /* Packet newPkt(m_buf);
+        cout << "!!\n";
+        newPkt.prettyPrint(cout); */
+    }
+
+
 
     void run(bool positiveSession = true)
     {

@@ -8,14 +8,14 @@ HEADER_PROPERTY(uint8_t, unfixed_size)
 HEADER_PROPERTY(uint64_t, packet_len)  //special
 HEADER_PROPERTY(uint8_t, open_session)
 
-#define _PARAM_LEN_LEN  8 //byte
-
+#define VALUE_PARAM_LEN_LEN  8 //byte
+#define VALUE_HEADER_LEN 12
 
 
 struct Param
 {
     friend class Packet;
-    const static int PARAM_LEN_LEN = 4;
+    const static int PARAM_LEN_LEN = VALUE_PARAM_LEN_LEN;
 private:
     uint32_t len;
 protected:
