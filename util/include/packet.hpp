@@ -50,7 +50,6 @@ struct Param
     const static int PARAM_LEN_LEN = 4;
 private:
     uint32_t len;
-protected:
     uint8_t* data;
 };
 
