@@ -22,6 +22,7 @@ struct Param
     Param(uint8_t*, uint32_t size);
     ~Param();
     void prettyPrint(ostream& os);
+    Param(Param&& p);
     Param& operator=(Param&& p);
     friend ostream& operator<<(ostream& os, const Param& param);
     const static int PARAM_LEN_LEN = 4;

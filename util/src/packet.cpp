@@ -86,6 +86,15 @@ Packet&  Packet::addParam(Param& param)
     return *this;
 }
 
+Packet& Packet::addParam(Param&& param)
+{
+    Param* p = new Param(std::move(param));
+    this->params.push_back(unique_ptr<Param>(p));
+    this->header.packet_len += param.len + Param::PARAM_LEN_LEN;
+    return *this;
+}
+
+
 void Packet::serialize(vector<char>& vec)
 {
     stringstream ss;

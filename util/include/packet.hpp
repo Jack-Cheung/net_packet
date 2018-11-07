@@ -20,6 +20,8 @@ struct Packet
     const Header& getHeader();
     const Param& getParam(uint8_t idx);
     Packet& addParam(Param& param);
+    Packet& addParam(Param&& param);
+    //void addParam(initializer_list<> list);
     void serialize(vector<uint8_t>&);
     void serialize(vector<char>&);
     uint64_t serialize(char*);

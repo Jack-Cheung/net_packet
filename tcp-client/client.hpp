@@ -25,17 +25,23 @@ class client
 public:
     client():m_s(m_io_context)
     {}
-    void Register(const string& addr, const string& pubK, uint64_t cap, uint64_t avail, uint64_t loc, const string& sig)
+    void Register(const string& addr, const string& pubK, uint64_t cap, uint64_t avail, uint8_t loc[5], const string& sig)
     {
         Packet pkt;
         Header header = {1,REGISTER_CODE,0,0,0};
         pkt.setHeader(header);
-        pkt.addParam(*(new Param(addr)))
-            .addParam(*new Param(pubK))
-            .addParam(*new Param(cap))
-            .addParam(*new Param(avail))
-            .addParam(*new Param(loc))
-            .addParam(*new Param(sig));
+        /* uint8_t loct[5] = {0};
+        loct[0] = loc & 0xFF;
+        loct[1] = ( loc >> 8 ) & 0xFF;
+        loct[2] = ( loc >> 16 ) & 0xFF;
+        loct[3] = ( loc >> 24 ) & 0xFF
+        loct[4] = ( loc >> 32) & 0xFF; */
+        pkt.addParam(Param(addr))
+            .addParam(Param(pubK))
+            .addParam(Param(cap))
+            .addParam(Param(avail))
+            .addParam(Param(loc, 5))
+            .addParam(Param(sig));
         pkt.serialize(m_buf);
         std::cout << "prepaired to send:" << endl;
         pkt.prettyPrint(cout);

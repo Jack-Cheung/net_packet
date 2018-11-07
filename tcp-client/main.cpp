@@ -146,7 +146,8 @@ int main(int argc, char const *argv[])
                 string publickey = _vm["publickey"].as<string>();
                 uint64_t capcity = _vm["capcity"].as<uint64_t>();
                 uint64_t available = _vm[PARAM_AVAIL].as<uint64_t>();
-                uint64_t location = _vm[PARAM_LOCATION].as<uint64_t>();
+                //uint64_t location = _vm[PARAM_LOCATION].as<uint64_t>();
+                uint8_t location[5] = {1, 0};
                 string signature = _vm[PARAM_SIG].as<string>();
                 client cl;
                 cl.Register(address, publickey, capcity, available, location, signature);

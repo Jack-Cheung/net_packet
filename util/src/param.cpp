@@ -59,6 +59,11 @@ Param& Param::operator=(Param&& p)
     return *this;
 }
 
+Param::Param(Param&& p)
+{
+    *this = std::move(p);
+}
+
 void Param::prettyPrint(ostream& os)
 {
     os << "PARAM [len = " << to_string(len) << "]\n";
