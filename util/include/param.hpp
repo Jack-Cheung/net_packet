@@ -1,6 +1,8 @@
 #pragma once
 #include "global.hpp"
+#include "generated.hpp"
 #include <iostream>
+
 
 using namespace std;
 
@@ -9,9 +11,8 @@ struct Param
     friend class Packet;
 
     Param(uint8_t);
-    template <typename T>
-    //internal data type
-    Param(T param)
+    template <typename INTERNAL_TYPE>
+    Param(INTERNAL_TYPE param)
     {
         len = sizeof(param);
         this->data = new uint8_t[len];
@@ -25,7 +26,7 @@ struct Param
     Param(Param&& p);
     Param& operator=(Param&& p);
     friend ostream& operator<<(ostream& os, const Param& param);
-    const static int PARAM_LEN_LEN = 4;
+    const static int PARAM_LEN_LEN = VALUE_PARAM_LEN_LEN;
 private:
     uint32_t len;
     uint8_t* data;

@@ -18,7 +18,7 @@ ostream& operator<<(ostream& os, Packet& packet)
 istream& operator>>(istream& is, Packet& packet)
 {
     is >> packet.header;
-    uint64_t packet_len = packet.header.packet_len;
+    uint64_t packet_len = packet.header.HEADER_PKGLEN_VAR_NAME;//to do
     uint64_t cnt = Header::HEADER_LEN;
     while(cnt < packet_len)
     {
